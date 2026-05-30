@@ -1,29 +1,27 @@
 package david.arias.catgallery.config.di
 
+import android.util.Log
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import jakarta.inject.Singleton
+import david.arias.catgallery.config.constants.EnvConfig
+import david.arias.catgallery.infraestructure.remote.apis.CatApiService
+import javax.inject.Singleton
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-/*
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideLoggingInterceptor():
-            HttpLoggingInterceptor {
-
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor {
         return HttpLoggingInterceptor().apply {
-
-            level =
-                HttpLoggingInterceptor.Level.BODY
+            level = HttpLoggingInterceptor.Level.BODY
         }
     }
 
@@ -32,7 +30,6 @@ object NetworkModule {
     fun provideOkHttpClient(
         logging: HttpLoggingInterceptor
     ): OkHttpClient {
-
         return OkHttpClient.Builder()
             .addInterceptor(logging)
             .build()
@@ -43,15 +40,11 @@ object NetworkModule {
     fun provideRetrofit(
         client: OkHttpClient
     ): Retrofit {
-
+        Log.d("TEST", "${EnvConfig.BASE_URL}")
         return Retrofit.Builder()
-            .baseUrl(
-                "https://api.thecatapi.com/v1/"
-            )
+            .baseUrl(EnvConfig.BASE_URL)
             .client(client)
-            .addConverterFactory(
-                GsonConverterFactory.create()
-            )
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
@@ -65,4 +58,4 @@ object NetworkModule {
             CatApiService::class.java
         )
     }
-}*/
+}

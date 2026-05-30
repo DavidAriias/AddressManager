@@ -15,25 +15,29 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
+import david.arias.catgallery.domain.entities.Breed
+import david.arias.catgallery.presentation.components.CustomLoadingProgressIndicator
+import david.arias.catgallery.presentation.components.CustomMessageError
+import david.arias.catgallery.presentation.viewmodels.BreedSelectionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BreedSelectionScreen(navController: NavController) {
+fun BreedSelectionScreen(
+    navController: NavController,
+    breedSelectionViewModel: BreedSelectionViewModel = hiltViewModel(),
+) {
+
+    val uiState by
+    breedSelectionViewModel.uiState.collectAsState()
 
     var expanded by remember {
         mutableStateOf(false)
     }
 
-    val breeds = listOf(
-        "Bengal",
-        "Persian",
-        "Siamese",
-        "Maine Coon"
-    )
-
     var selectedBreed by remember {
-        mutableStateOf("")
+        mutableStateOf<Breed?>(null)
     }
 
     var limit by remember {
@@ -50,85 +54,115 @@ fun BreedSelectionScreen(navController: NavController) {
         }
     ) { padding ->
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-
-            Text(
-                text = "Search Cats By Breed",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = {
-                    expanded = !expanded
-                }
-            ) {
-
-                OutlinedTextField(
-                    value = selectedBreed,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = {
-                        Text("Breed")
-                    },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(
-                            expanded = expanded
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = {
-                        expanded = false
-                    }
-                ) {
-
-                    breeds.forEach { breed ->
-
-                        DropdownMenuItem(
-                            text = {
-                                Text(breed)
-                            },
-                            onClick = {
-                                selectedBreed = breed
-                                expanded = false
-                            }
-                        )
-                    }
-                }
+        when {
+            uiState.isLoading -> {
+                CustomLoadingProgressIndicator()
             }
 
-            OutlinedTextField(
-                value = limit,
-                onValueChange = {
-                    limit = it
-                },
-                label = {
-                    Text("Limit")
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
+            uiState.error != null -> {
+                CustomMessageError(uiState.error ?: "Ocurrió un error")
+            }
 
-            Button(
-                onClick = {},
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Search Cats")
+            else -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+
+                    Text(
+                        text = "Search Cats By Breed",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    uiState.error?.let { error ->
+
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = {
+                            expanded = !expanded
+                        }
+                    ) {
+
+                        OutlinedTextField(
+                            value = selectedBreed?.name ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = {
+                                Text("Breed")
+                            },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                    expanded = expanded
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = {
+                                expanded = false
+                            }
+                        ) {
+
+                            uiState.breeds.forEach { breed ->
+
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(breed.name)
+                                    },
+                                    onClick = {
+                                        selectedBreed = breed
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = limit,
+                        onValueChange = { value ->
+                            limit = value.filter { it.isDigit() }
+                        },
+                        label = {
+                            Text("Limit")
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Button(
+                        onClick = {
+
+                            val breedId = selectedBreed?.id ?: return@Button
+                            val imageLimit = limit.toIntOrNull() ?: return@Button
+
+                            // TODO:
+                            // Navegar a ResultsScreen
+                            // navController.navigate(...)
+
+                        },
+                        enabled = limit.toIntOrNull() != null,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Search Cats")
+                    }
+                }
             }
         }
     }
