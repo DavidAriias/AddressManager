@@ -9,6 +9,7 @@ import david.arias.addressmanager.domain.repositories.AddressRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -29,72 +30,53 @@ class AddressListViewModel @Inject constructor(
     private val repository: AddressRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AddressListState())
-    val uiState = _uiState.asStateFlow()
+    private val addressesFlow = repository.getAddresses()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
 
-    init {
-        loadData()
-    }
+    val uiState = addressesFlow.map { data ->
+        AddressListState(
+            isLoading = false,
+            addresses = data,
+            cities = data.map { it.city }.distinct().sorted(),
+            states = data.map { it.stateProvince }.distinct().sorted()
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        AddressListState(isLoading = true)
+    )
 
-    fun loadData() {
-        viewModelScope.launch {
-
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
-            runCatching {
-                repository.getAddresses()
-            }.onSuccess { data ->
-                Log.d("VM", "$data")
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        addresses = data,
-                        cities = data.map { it.city }.distinct().sorted(),
-                        states = data.map { it.stateProvince }.distinct().sorted()
-                    )
-                }
-
-            }.onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = error.message
-                    )
-                }
-            }
-        }
-    }
+    private val _selectedCity = MutableStateFlow<String?>(null)
+    private val _selectedState = MutableStateFlow<String?>(null)
 
     fun onCitySelected(city: String?) {
-        _uiState.update {
-            it.copy(selectedCity = city)
-        }
+        _selectedCity.value = city
     }
 
     fun onStateSelected(state: String?) {
-        _uiState.update {
-            it.copy(selectedState = state)
-        }
+        _selectedState.value = state
     }
 
     fun clearFilters() {
-        _uiState.update {
-            it.copy(
-                selectedCity = null,
-                selectedState = null
-            )
-        }
+        _selectedCity.value = null
+        _selectedState.value = null
     }
 
-    val filteredAddresses = uiState.map { state ->
+    // 🔹 FILTRADO REACTIVO
+    val filteredAddresses = combine(
+        addressesFlow,
+        _selectedCity,
+        _selectedState
+    ) { list, city, state ->
 
-        state.addresses.filter { address ->
+        list.filter { address ->
 
-            val cityMatch =
-                state.selectedCity?.let { it == address.city } ?: true
-
-            val stateMatch =
-                state.selectedState?.let { it == address.stateProvince } ?: true
+            val cityMatch = city?.let { it == address.city } ?: true
+            val stateMatch = state?.let { it == address.stateProvince } ?: true
 
             cityMatch && stateMatch
         }

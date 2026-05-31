@@ -1,10 +1,13 @@
 package david.arias.addressmanager.domain.repositories
 
 import david.arias.addressmanager.domain.entities.Address
+import kotlinx.coroutines.flow.Flow
 
 interface AddressRepository {
 
-    suspend fun getAddresses(): List<Address>
+    fun getById(id: Long) : Flow<Address>
+
+    fun getAddresses(): Flow<List<Address>>
 
     suspend fun updateAddress(address: Address)
 
