@@ -117,4 +117,10 @@ class AddressDetailViewModel @Inject constructor(
             }
         }
     }
+    fun onSaveHandled() {
+        _uiState.update {
+            it.copy(isSaved = false)
+        }
+    }
+
 }
