@@ -8,16 +8,13 @@ plugins {
 
 android {
     namespace = "david.arias.addressmanager"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
 
     defaultConfig {
         applicationId = "david.arias.addressmanager"
-        compileSdk = 35
+
+        minSdk = 27
         targetSdk = 32
+        compileSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -33,10 +30,12 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     buildFeatures {
         compose = true
     }
