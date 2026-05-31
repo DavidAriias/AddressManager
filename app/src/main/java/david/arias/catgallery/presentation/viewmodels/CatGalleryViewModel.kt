@@ -6,22 +6,26 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import david.arias.catgallery.domain.entities.CatImage
 import david.arias.catgallery.domain.repositories.CatRepository
+import david.arias.catgallery.domain.repositories.PrinterRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class CatGalleryUiState(
+data class CatGalleryState(
     val isLoading: Boolean = false,
-    val breedName: String = "",
+    val isPrinting: Boolean = false,
     val cats: List<CatImage> = emptyList(),
-    val error: String? = null
+    val breedName: String = "",
+    val error: String? = null,
+    val snackbarMessage: String? = null
 )
 
 @HiltViewModel
 class CatGalleryViewModel @Inject constructor(
     private val catRepository: CatRepository,
+    private val printerRepository: PrinterRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -34,12 +38,52 @@ class CatGalleryViewModel @Inject constructor(
         checkNotNull(savedStateHandle["limit"])
 
     private val _uiState =
-        MutableStateFlow(CatGalleryUiState(breedName = breedName))
+        MutableStateFlow(CatGalleryState(breedName = breedName))
 
     val uiState = _uiState.asStateFlow()
 
     init {
         loadCats()
+    }
+
+    fun printCat(cat: CatImage) {
+        viewModelScope.launch {
+
+            _uiState.update {
+                it.copy(
+                    isPrinting = true
+                )
+            }
+
+            printerRepository
+                .printCat(cat)
+                .onSuccess {
+
+                    _uiState.update {
+                        it.copy(
+                            isPrinting = false,
+                            snackbarMessage = "Imagen enviada a impresión"
+                        )
+                    }
+                }
+                .onFailure { exception ->
+
+                    _uiState.update {
+                        it.copy(
+                            isPrinting = false,
+                            snackbarMessage = "Ocurrió un error al imprimir : ${exception.message}"
+                        )
+                    }
+                }
+        }
+    }
+
+    fun clearSnackbarMessage() {
+        _uiState.update {
+            it.copy(
+                snackbarMessage = null
+            )
+        }
     }
 
     private fun loadCats() {
