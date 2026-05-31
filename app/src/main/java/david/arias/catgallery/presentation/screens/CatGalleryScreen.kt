@@ -21,39 +21,47 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import david.arias.catgallery.presentation.components.CustomLoadingProgressIndicator
+import david.arias.catgallery.presentation.components.CustomMessageError
+import david.arias.catgallery.presentation.viewmodels.CatGalleryViewModel
 
 @OptIn( ExperimentalMaterial3Api::class)
 @Composable
-fun CatGalleryScreen(navController: NavController) {
+fun CatGalleryScreen(
+    navController: NavController,
+    catGalleryViewModel: CatGalleryViewModel = hiltViewModel(),
+) {
 
-    val images = listOf(
-        "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg",
-        "https://cdn2.thecatapi.com/images/MTY3ODIyMQ.jpg",
-        "https://cdn2.thecatapi.com/images/bpc.jpg",
-        "https://cdn2.thecatapi.com/images/9j5.jpg"
-    )
+    val uiState by catGalleryViewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text("Bengal")
+                        Text(uiState.breedName)
 
                         Text(
-                            text = "Results: 4",
+                            text = "Results: ${uiState.cats.size}",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
                 },
                 navigationIcon = {
                     IconButton(
-                        onClick = {}
+                        onClick = {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.popBackStack()
+                            }
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -64,33 +72,52 @@ fun CatGalleryScreen(navController: NavController) {
             )
         }
     ) { padding ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        when {
+            uiState.isLoading -> {
+                CustomLoadingProgressIndicator()
+            }
 
-            items(images) { image ->
+            uiState.error != null -> {
+                CustomMessageError(uiState.error ?: "Ocurrió un error")
+            }
 
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 4.dp
-                    )
+            uiState.cats.isEmpty() -> {
+                Text(
+                    text = "No se encontraron imágenes",
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+
+            else -> {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
 
-                    AsyncImage(
-                        model = image,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp),
-                        contentScale = ContentScale.Crop
-                    )
+                    items(uiState.cats) { image ->
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 4.dp
+                            )
+                        ) {
+
+                            AsyncImage(
+                                model = image.url,
+                                contentDescription = "Imagen de gato",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
                 }
             }
         }

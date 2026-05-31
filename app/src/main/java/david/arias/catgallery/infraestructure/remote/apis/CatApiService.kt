@@ -13,6 +13,7 @@ interface CatApiService {
     @GET("images/search")
     suspend fun getImagesByBreed(
         @Query("breed_ids") breedId: String,
-        @Query("limit") limit: Int
+        @Query("limit") limit: Int,
+        @Query("has_breads") hasBreads: Int = 1,
     ): List<CatImageResponse>
 }

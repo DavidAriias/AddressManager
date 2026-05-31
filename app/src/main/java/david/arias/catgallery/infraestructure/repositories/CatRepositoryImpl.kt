@@ -24,6 +24,6 @@ class CatRepositoryImpl @Inject constructor(
         return api.getImagesByBreed(
             breedId = breedId,
             limit = limit
-        ).map(CatMapper::toCatImage)
+        ).take(limit).map(CatMapper::toCatImage)
     }
 }

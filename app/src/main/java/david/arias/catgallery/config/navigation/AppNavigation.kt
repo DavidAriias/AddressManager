@@ -27,9 +27,12 @@ fun AppNavigation() {
         }
 
         composable(
-            route = "${AppScreens.CatGallery.route}/{breedId}/{limit}",
+            route = "${AppScreens.CatGallery.route}/{breedId}/{breedName}/{limit}",
             arguments = listOf(
                 navArgument("breedId") {
+                    type = NavType.StringType
+                },
+                navArgument("breedName") {
                     type = NavType.StringType
                 },
                 navArgument("limit") {

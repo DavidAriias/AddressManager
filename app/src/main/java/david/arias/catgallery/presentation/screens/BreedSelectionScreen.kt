@@ -17,6 +17,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
+import david.arias.catgallery.config.navigation.AppScreens
 import david.arias.catgallery.domain.entities.Breed
 import david.arias.catgallery.presentation.components.CustomLoadingProgressIndicator
 import david.arias.catgallery.presentation.components.CustomMessageError
@@ -48,7 +49,7 @@ fun BreedSelectionScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Cat Explorer")
+                    Text("Explorador")
                 }
             )
         }
@@ -73,7 +74,7 @@ fun BreedSelectionScreen(
                 ) {
 
                     Text(
-                        text = "Search Cats By Breed",
+                        text = "Busca gatos por raza",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -98,7 +99,7 @@ fun BreedSelectionScreen(
                             onValueChange = {},
                             readOnly = true,
                             label = {
-                                Text("Breed")
+                                Text("Raza")
                             },
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(
@@ -138,7 +139,7 @@ fun BreedSelectionScreen(
                             limit = value.filter { it.isDigit() }
                         },
                         label = {
-                            Text("Limit")
+                            Text("Límite")
                         },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number
@@ -149,18 +150,25 @@ fun BreedSelectionScreen(
                     Button(
                         onClick = {
 
-                            val breedId = selectedBreed?.id ?: return@Button
-                            val imageLimit = limit.toIntOrNull() ?: return@Button
+                            if (
+                                selectedBreed != null &&
+                                limit.isNotBlank()
+                            ) {
 
-                            // TODO:
-                            // Navegar a ResultsScreen
-                            // navController.navigate(...)
+                                navController.navigate(
+                                    AppScreens.CatGallery.createRoute(
+                                        breedId = selectedBreed!!.id,
+                                        breedName = selectedBreed!!.name,
+                                        limit = limit.toLong()
+                                    )
+                                )
+                            }
 
                         },
                         enabled = limit.toIntOrNull() != null,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Search Cats")
+                        Text("Buscar")
                     }
                 }
             }
