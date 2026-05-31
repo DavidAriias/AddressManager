@@ -23,6 +23,8 @@ import androidx.navigation.NavController
 import david.arias.addressmanager.config.navigation.AppScreens
 import david.arias.addressmanager.presentation.components.AddressFiltersSection
 import david.arias.addressmanager.presentation.components.AddressItem
+import david.arias.addressmanager.presentation.components.CustomErrorMessage
+import david.arias.addressmanager.presentation.components.CustomLoadingCircularProgressIndicator
 import david.arias.addressmanager.presentation.viewmodels.AddressListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,21 +69,11 @@ fun AddressListScreen(
                 when {
 
                     state.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
+                        CustomLoadingCircularProgressIndicator()
                     }
 
                     state.error != null -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(state.error ?: "Error")
-                        }
+                        CustomErrorMessage(state.error)
                     }
 
                     filteredAddresses.isEmpty() -> {

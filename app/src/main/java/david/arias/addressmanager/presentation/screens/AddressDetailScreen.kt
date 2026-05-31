@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import david.arias.addressmanager.config.helpers.DateHelper
+import david.arias.addressmanager.presentation.components.CustomErrorMessage
+import david.arias.addressmanager.presentation.components.CustomLoadingCircularProgressIndicator
 import david.arias.addressmanager.presentation.components.EditAddressBottomSheet
 import david.arias.addressmanager.presentation.viewmodels.AddressDetailViewModel
 
@@ -80,21 +82,11 @@ fun AddressDetailScreen(
         when {
 
             state.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                CustomLoadingCircularProgressIndicator()
             }
 
             state.error != null -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(state.error ?: "Error")
-                }
+                CustomErrorMessage(state.error)
             }
 
             state.address != null -> {
@@ -114,8 +106,8 @@ fun AddressDetailScreen(
                         style = MaterialTheme.typography.headlineSmall
                     )
 
-                    Text("City: ${address?.city}")
-                    Text("State: ${address?.stateProvince}")
+                    Text("Ciudad: ${address?.city}")
+                    Text("Estado: ${address?.stateProvince}")
                     Text("Postal: ${address?.postalCode}")
 
                     Text(
