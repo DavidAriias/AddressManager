@@ -12,13 +12,20 @@ object AddressCsvMapper {
         return AddressEntity(
             id = parts[0].toInt(),
             addressLine1 = parts[1],
-            addressLine2 = parts[2].ifBlank { null }.takeIf { it != "NULL" },
-            city = parts[3],
-            stateProvince = parts[4],
+            addressLine2 = parts[2].takeIf { it.isNotBlank() && it != "NULL" },
+            city = clean(parts[3]),
+            stateProvince = clean(parts[4]),
             countryRegion = parts[5],
             postalCode = parts[6],
             rowguid = parts[7],
             modifiedDate = DateHelper.toEpochMillis(parts[8]),
         )
+    }
+
+    private fun clean(value: String): String {
+        return value
+            .trim()
+            .removePrefix("\"")
+            .removeSuffix("\"")
     }
 }

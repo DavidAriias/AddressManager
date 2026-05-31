@@ -8,12 +8,9 @@ import david.arias.addressmanager.domain.entities.Address
 import david.arias.addressmanager.domain.repositories.AddressRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class AddressListState(
@@ -41,8 +38,14 @@ class AddressListViewModel @Inject constructor(
         AddressListState(
             isLoading = false,
             addresses = data,
-            cities = data.map { it.city }.distinct().sorted(),
-            states = data.map { it.stateProvince }.distinct().sorted()
+            cities = data.map { it.city }
+                .filter{ it.isNotBlank() }
+                .distinct()
+                .sorted(),
+            states = data.map { it.stateProvince }
+                .filter{ it.isNotBlank() }
+                .distinct()
+                .sorted()
         )
     }.stateIn(
         viewModelScope,
@@ -66,7 +69,6 @@ class AddressListViewModel @Inject constructor(
         _selectedState.value = null
     }
 
-    // 🔹 FILTRADO REACTIVO
     val filteredAddresses = combine(
         addressesFlow,
         _selectedCity,
