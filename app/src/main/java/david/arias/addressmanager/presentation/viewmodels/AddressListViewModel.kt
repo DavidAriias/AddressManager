@@ -27,6 +27,9 @@ class AddressListViewModel @Inject constructor(
     private val repository: AddressRepository
 ) : ViewModel() {
 
+    private val _selectedCity = MutableStateFlow<String?>(null)
+    private val _selectedState = MutableStateFlow<String?>(null)
+
     private val addressesFlow = repository.getAddresses()
         .stateIn(
             viewModelScope,
@@ -34,27 +37,32 @@ class AddressListViewModel @Inject constructor(
             emptyList()
         )
 
-    val uiState = addressesFlow.map { data ->
+    val uiState = combine(
+        addressesFlow,
+        _selectedCity,
+        _selectedState
+    ) { data, selectedCity, selectedState ->
+
         AddressListState(
             isLoading = false,
             addresses = data,
             cities = data.map { it.city }
-                .filter{ it.isNotBlank() }
+                .filter { it.isNotBlank() }
                 .distinct()
                 .sorted(),
             states = data.map { it.stateProvince }
-                .filter{ it.isNotBlank() }
+                .filter { it.isNotBlank() }
                 .distinct()
-                .sorted()
+                .sorted(),
+            selectedCity = selectedCity,
+            selectedState = selectedState
         )
+
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         AddressListState(isLoading = true)
     )
-
-    private val _selectedCity = MutableStateFlow<String?>(null)
-    private val _selectedState = MutableStateFlow<String?>(null)
 
     fun onCitySelected(city: String?) {
         _selectedCity.value = city
