@@ -26,7 +26,8 @@ android {
     defaultConfig {
         applicationId = "david.arias.catgallery"
         minSdk = 27
-        targetSdk = 36
+        compileSdk = 35
+        targetSdk = 32
         versionCode = 1
         versionName = "1.0"
 
