@@ -1,6 +1,5 @@
-package david.arias.addressmanager.ui.theme
+package david.arias.addressmanager.config.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

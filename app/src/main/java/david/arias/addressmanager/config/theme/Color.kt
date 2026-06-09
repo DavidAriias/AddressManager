@@ -1,4 +1,4 @@
-package david.arias.addressmanager.ui.theme
+package david.arias.addressmanager.config.theme
 
 import androidx.compose.ui.graphics.Color
 
